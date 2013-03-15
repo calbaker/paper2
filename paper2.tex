@@ -22,6 +22,7 @@
 %% $URL: http://lenova.river-valley.com/svn/elsbst/trunk/elsarticle-template-2-harv.tex $
 %%
 \documentclass[preprint,authoryear,12pt]{elsarticle}
+% \documentclass{article}
 
 %% Use the option review to obtain double line spacing
 %% \documentclass[authoryear,preprint,review,12pt]{elsarticle}
@@ -71,6 +72,8 @@
 \usepackage{amssymb}
 %% The amsthm package provides extended theorem environments
 %% \usepackage{amsthm}
+
+\graphicspath{{./figures/}}
 
 %% The lineno packages adds line numbers. Start line numbering with
 %% \begin{linenumbers}, end it with \end{linenumbers}. Or switch it on
@@ -127,7 +130,7 @@
 %% \address{Address\fnref{label3}}
 %% \fntext[label3]{}
 
-  \title{Thermoelectric Wooooo}
+  \title{High Fidelity Finite Difference Model for Exploring Multi-DOF Thermoelectric Generator Design Space}
 
 %% use optional labels to link authors explicitly to addresses:
 %% \author[label1,label2]{<author name>}
@@ -171,21 +174,411 @@ thermoelectric \sep model
 
 % Chad + Haiyan
 
+One third or more of the energy content of the fuel of a typical
+diesel engine is expelled through the tailpipe as waste heat, so any
+amount of waste heat usefully recovered is a benefit to vehicle
+efficiency \cite{heywood_internal_1988,caton_operating_2000,%
+  endo_study_2007}. Potential waste heat recovery technologies
+currently under consideration for automotive applications are organic
+Rankine cycles \cite{miller_modeling_2009}, turbo-compounding
+\cite{weerasinghe_thermal_2010}, direct usage of the waste heat as
+thermal energy, powering absorption chillers \cite{talom_heat_2009},
+and thermoelectric (TE) devices
+\cite{miller_modeling_2009,hendricks_thermal_2007,hendricks_advanced_2002%
+  ,hussain_thermoelectric_2009,crane_introduction_2011,%
+  crane_optimization_2004,crane_towards_2001}.  Thermoelectric devices
+in particular are appealing for automotive applications in that they
+do not have moving parts, and thermal energy can be converted into
+electricity directly.  Their high cost and low efficiency are
+currently issues, but the potential use of relatively inexpensive and
+abundant element materials such as Mg$_2$Si$_{0.5}$Sn$_{0.5}$ and
+MnSi$_{1.75}$ for TE devices shows promise for future cost reductions
+and improved performance \cite{rowe_thermoelectrics_2006}.  A
+schematic of a TE leg pair, which is the most fundamental part of a TE
+device (a device typically consists of hundreds of leg pairs) is shown
+in Figure \ref{fig:te-pair-first-look}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\textwidth]{te-leg-pair}
+  \caption{Schematic of TE leg pair.  A TE leg pair is the smallest
+    unit that can function as a standalone TE device.  A typical TE
+    device consists of hundreds of these pairs in series and/or
+    parallel arrangement.}
+  \label{fig:te-pair-first-look}
+\end{figure}
+
+A number of researchers have reported both modeling and experimental
+work with TE vehicle waste heat recovery with varying emphasis on heat
+exchanger performance and TE device performance. Stobart and coworkers
+modeled and experimentally tested TE performance for devices with
+exhaust temperatures up to 800 K.  Because of internal thermoelectric
+conversion, there is a difference between the hot side and cold side
+heat transfer of TE devices. This heat transfer asymmetry was not
+accounted for in the work by Stobart and coworkers.  They used an
+efficiency model based on the average figure of merit ($ZT$) of the TE
+material that assumes optimal device geometry and optimal current
+\cite{stobart_potential_2009,stobart_potential_2010}.  Optimal
+geometry consists of n-/p-type leg area ratio, leg height, the
+distance between adjacent legs. Modeling efforts by Hendricks \emph{et
+  al.}  \cite{hendricks_advanced_2002,hendricks_thermal_2007} reported
+using temperature-dependent TE properties (Seebeck coefficient,
+electrical resistivity, and thermal conductivity) to determine optimal
+TE leg areas, lengths, and device designs. Miller \emph{et al.}
+studied heat transfer and heat exchanger optimization for a combined
+TE and organic Rankine cycle waste heat recovery system. Miller
+\emph{et al.}  calculated the TE device efficiency based on an average
+$ZT$ for state of the art TE materials evaluated at typical operating
+temperatures \cite{miller_modeling_2009}.  Hussain \emph{et al.}
+developed a model with single node TE devices that accounted for
+transient behavior and thermal asymmetry.  In their model, the spatial
+variation and temperature dependence of the TE properties in
+individual TE devices were not accounted for.  No attempt was made to
+account for restriction of the exhaust flow in the form of back
+pressure on the engine \cite{hussain_thermoelectric_2009}. Back
+pressure is an important design consideration because the pumping
+effort the engine must exert to expel exhaust gases is increased if
+back pressure in the exhaust system is increased.  Increased pumping
+effort takes useful power away from the engine crank shaft.
+
+Crane and coworkers developed a model for cross-flow and counter-flow
+heat exchanger configurations.  They used an analytical,
+thermally-lumped TE leg performance model that correctly accounted for
+thermal asymmetry.  Some of this modeling work was also validated with
+experimental results. Crane's most recent model incorporated transient
+performance \cite{crane_towards_2001,crane_optimization_2004,%
+  crane_introduction_2011}. None of the previous work discussed here
+used a TE model that accounted for spatial- and temperature-variant
+properties within the TE material of an individual TE couple.
+
+This dissertation reports a modeling study of TE vehicle waste heat
+recovery devices based on Mg$_2$Si$_{0.5}$Sn$_{0.5}$ and MnSi$_{1.75}$
+materials with consideration of both system level heat exchanger
+performance and TE device performance.  The model presented in this
+dissertation offers an improvement over existing models because it
+used a finite difference method to account for spatial- and
+temperature-variant TE properties at the individual TE leg pair
+scale. The model also coupled the hot- and cold-side convection heat
+flux to the TE heat flux, thus accounting for the thermal asymmetry,
+using a numerical root finding algorithm.  This model incorporated
+back pressure as part of an optimization metric in the form of pumping
+power requirement.  The output of the system model was heat transfer,
+TE power, pumping power requirement, and the net power output, where
+the net power output is the total TE power minus the pumping power
+required to move the coolant and exhaust through the heat
+exchanger. The model was used to predict overall performance of
+several heat exchanger systems, incorporating different fin geometries
+and flow arrangements for enhancing heat transfer and TE power
+generation.  The important TE parameters were optimized using a
+numerical algorithm, and the optimization metric used by the algorithm
+was the net power of the system.
+
+This work also includes two generations of TE waste heat recovery
+systems that were built and tested in the exhaust system of a Cummins
+6.7 L turbo Diesel engine. The experimental work was used to validate
+the model so that the model could be used both as a design tool and a
+means of thoroughly optimizing various parameters in the TE waste heat
+recovery system design space.
+
+The first generation TE system consisted of a compact heat exchanger
+without any TE devices.  This system was built to validate the
+convection heat transfer and flow model using only a small portion of
+the exhaust flow of the Cummins engine.  In order to validate the
+model at full scale, a second generation TE heat exchanger system was
+constructed to utilize the entire flow of the Cummins engine.
+Experimental apparatus, methods, and results from each heat exchanger
+will be presented separately in Chapters \ref{cha:te-first-generation}
+and \ref{cha:te-second-generation}.  
+
+A key contribution of this work was recognizing that for almost any
+practical TE device application, the boundary conditions on the hot
+and cold side will be convection boundary conditions rather than
+specified temperature boundary conditions.  The TE model developed
+here accounts for that, and in addition, the model accounts for
+spatially/thermally variant properties in the direction of heat flow
+and thermal asymmetry.
+
 \section{TE Device Testing}
 \label{sec:te-device-testing}
 
 % Haiyan is in charge of this section
 
+This may be beyond the scope.  
+
 \subsection{Steady State}
 \label{sec:exp-steady-state}
+
+This may be beyond the scope.  
 
 \subsection{Transient}
 \label{sec:exp-transient}
 
+This may be beyond the scope.  
+
 \section{Model}
 \label{sec:model}
 
+\subsection{Analytical Model}
+\label{sec:analy-model}
+
 % Chad will handle this section
+
+The TE devices were modeled using Domenicali's energy balance equation
+and the thermoelectric heat flux equation
+\cite{domenicali_irreversible_1953,hogan_modeling_2006}:
+\begin{equation}
+  \label{eq:te-energy-balance}
+  \frac{d}{d x} \left(k \frac{d T}{d x}
+  \right) = - \rho J^2 + J T \frac{d \alpha}{d x}
+\end{equation}
+and
+\begin{equation}
+  \label{eq:te-heat-flux}
+  q = J T \alpha - k \frac{d T}{d x}
+\end{equation}
+where $x$ is the coordinate along the direction of heat and current
+flux, $k$ is the thermal conductivity, $T$ is the temperature, $\rho$
+is the electrical resistivity, $J$ is the current flux, and $\alpha$
+is the Seebeck coefficient, all evaluated at $T$.
+
+For completeness, the entire solution for Equations
+\ref{eq:te-energy-balance} and \ref{eq:te-heat-flux} will be presented
+here.  This solution has been presented in the literature
+\cite{hogan_modeling_2006} with a critical sign error, and the present
+work corrects this error.
+
+A tractable solution can be achieved through several steps of
+algebraic manipulation.  First, rearranging Equation
+\ref{eq:te-heat-flux} yields
+\begin{equation}
+  \label{eq:te-temp-gradient-final}
+  \frac{dT}{dx} = \frac{J T \alpha -q}{k}
+\end{equation}
+This is the final equation for determining the temperature
+gradient. In order to determine the heat flux gradient, Equation
+\ref{eq:te-temp-gradient-final} is multiplied by $k$ and substituted
+into Equation \ref{eq:te-energy-balance}, resulting in
+\begin{equation}
+  \label{eq:te-energy-step1}
+  \frac{d}{dx} \left( J T \alpha - q \right) = - \rho J^2 + J T \frac{d
+    \alpha}{d x}
+\end{equation}
+For constant current density (e.g. if the cross-sectional area of the
+leg is constant), the product rule can be used to expand the
+left-hand-side to
+\begin{equation}
+  \label{eq:te-energy-step2}
+  J \left( \frac{dT}{dx} \alpha + \frac{d \alpha}{dx} T \right) -
+  \frac{dq}{dx} = -
+  \rho J^2 + J T \frac{d \alpha}{d x}  
+\end{equation}
+The temperature gradient in first term on the left-hand-side of
+Equation \ref{eq:te-energy-step2} can be replaced by substituting
+Equation \ref{eq:te-temp-gradient-final}, and after some rearranging,
+this yields
+\begin{equation}
+  \label{eq:te-energy-step3}
+  \frac{dq}{dx} = \rho J^2 + J \alpha \frac{J T \alpha -q}{k}
+\end{equation}
+Multiplying the second term ($J \alpha \frac{J T \alpha -q}{k}$) by
+$\frac{\rho}{\rho}$ and recognizing the definition of $ZT$ (Equation
+\ref{eq:ZT-def}) yields the final result:
+\begin{equation}
+  \label{eq:te-energy-final}
+  \frac{dq}{dx} = \rho J^2 \left( 1 + ZT \right) - \frac{J \alpha
+    q}{k} 
+\end{equation}
+
+Current density, rather than load resistance, is specified in the
+model.  However, it may be desired to specify load resistance for
+experimental or design purposes.  To fully close the model for a
+specified load resistance, an expression is needed to relate current
+density to load resistance.  This is given by
+\begin{equation}
+  \label{eq:current-v-R_L}
+  R_{\text{L}} = \frac{V_{\text{S,n}} - I / A_{\text{n}} \rho_{\text{n}} l +
+    V_{\text{S,p}} - I / A_{\text{p}} \rho_{\text{p}} l}{I} 
+\end{equation}
+where $R_{\text{L}}$ is the load electrical resistance, $l$ is the
+length of the TE legs, subscripts n and p indicate n- or p-type leg,
+and $V_{\text{S}}$ is the Seebeck voltage, given by
+\begin{equation}
+  \label{eq:V_Seebeck}
+  V_{\text{S}} = \sum_{i=1}^N \alpha_i \left( T_i - T_{i-1} \right)
+\end{equation}%
+and the current, $I$, is given by
+\begin{equation}
+  \label{eq:current-flux}
+  I = J A
+\end{equation}
+where $J$ is current density of either leg, and $A$ is the
+cross-sectional area of either leg.  Either leg can be used for this
+calculation, provided the same leg is used for both the current
+density and the area. The total power was calculated by
+\begin{equation}
+  \label{eq:electrical-power}
+  \dot{W}_{\text{elec}} = I R_{\text{L}}
+\end{equation}
+where $\dot{W}_{\text{elec}}$ is the electrical power output.
+
+For a pair of thermoelectric legs with convection heat transfer on
+both sides and isothermal interconnects with no generation, the
+boundary conditions are combined heat flux and temperature.  The
+interconnects, which are typically copper, are assumed to be
+isothermal because the thermal conductivity is high. Generation due to
+Joule heating is assumed to be negligible due to high electrical
+conductivity, and thermoelectric energy conversion at the interface of
+the interconnects and the TE materials is neglected.  A schematic that
+will be referenced for both the analytical and numerical finite
+difference equations is shown in Figure
+\ref{fig:te-numerical-schematic}.  On both the hot and cold side of
+the TE leg pair, the temperature of each leg must be equal to the
+temperature of the isothermal interconnect interface, and this is also
+the temperature driving convection heat flux.  The composite heat flux
+is given by
+\begin{equation}
+  \label{eq:q-composite-definition}
+  q_{\text{comp}} = \frac{A_\text{n} q_\text{n} + A_\text{p}
+    q_\text{p}}{A_\text{n} + A_\text{p} + A_{\text{void}}} 
+\end{equation}
+where $A$ is the cross-sectional area of the n- or p-type leg or that
+of the void space, and $q$ is the composite heat flux or the heat flux
+in the specified leg.  Subscripts n, p, void, and comp indicate
+whether the variable references the n-type, p-type, void space, or
+composite value.  A visual representation of the p-type, n-type and
+void areas is shown in Figure \ref{fig:te-area-visual}.  The void area
+is the empty space between adjacent TE legs, and it is assumed to be
+perfectly insulated.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\textwidth]{te-area-schematic}
+  \caption{Visual reprentation of p-type, n-type, and void areas.}
+  \label{fig:te-area-visual}
+\end{figure}
+\noindent%
+The composite heat flux must be equal to the convection heat flux on
+both the hot and cold sides, given by
+\begin{equation}
+  \label{eq:conv-flux-hot}
+  q_\text{h,comp} = U_\text{h} \left( T_{\text{h,conv}} - T_\text{h}
+  \right)   
+\end{equation}
+for the hot side and
+\begin{equation}
+  \label{eq:conv-flux-cold}
+  q_\text{c,comp} = U_\text{c} \left( T_{\text{c,conv}} - T_\text{c}
+  \right)   
+\end{equation}
+for the cold side, where $U$ is the overall heat transfer coefficient
+for the hot or cold side (including thermal resistance due to
+conduction and contact resistances associated with the Al plate,
+substrate, and interconnect shown in Figure
+\ref{fig:te-numerical-schematic} as well as thermal resistance due to
+convection; see Section \ref{sec:te-parasitic-losses}), $T_{conv}$ is
+the temperature of the hot or cold fluid, $T$ is the temperature of
+the hot or cold side of the TE leg pair, and $q_{\text{comp}}$ is the
+composite heat flux on the hot or cold side of the TE device, given in
+Equation \ref{eq:q-composite-definition}.  Subscripts $h$ and $c$
+indicate whether the variable corresponds to the hot or cold side.
+The temperature boundary conditions are specified as follows:
+\begin{equation}
+  \label{eq:TE-hot-ana-T}
+  T_{\text{n,h}} = T_{\text{p,h}} = T_\text{h}
+\end{equation}
+\begin{equation}
+  \label{eq:TE-cold-ana-T}
+  T_{\text{n,c}} = T_{\text{p,c}} = T_\text{c}
+\end{equation}
+where, as before, subscripts n and p indicate n- or p-type leg, and
+subscripts c and h indicate cold or hot side.
+
+\subsection{Thermoelectric Finite Difference Model}
+\label{sec:te_finite}
+
+Following the procedure from Hogan and Shih
+\cite{hogan_modeling_2006}, the equations from Section
+\ref{sec:analy-model} can be discretized to the following pair of
+first order, reverse-looking finite difference equations:
+\begin{equation}
+  \label{eq:temp-discrete}
+  T_i = T_{i-1} + \left( \frac{J T_{i-1} \alpha_{i-1} -q_{i-1}}{k
+     _{i-1}} \right) \Delta x  
+\end{equation}
+from Equation \ref{eq:te-temp-gradient-final}, and
+\begin{equation}
+  \label{eq:q-discrete}
+  q_i = q_{i-1} + \left( \rho_{i-1} J^2 + \left( 1 + ZT_{i-1} \right) - \frac{J
+      \alpha_{i-1} q_{i-1}}{k_{i-1}} \right) \Delta x
+\end{equation}
+from Equation \ref{eq:te-energy-final}, where the subscripts $_i$
+and $_{i-1}$ indicate the current and previous nodes, respectively,
+and the TE properties are all evaluated at the temperature of the
+previous node.  A schematic of the system being discretized is shown
+in Figure \ref{fig:te-numerical-schematic}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{te-numerical-schematic}
+  \caption{Schematic of numerical scheme used to solve TE leg pair.
+    Blue leg is n-type and red leg is p-type.}
+  \label{fig:te-numerical-schematic}
+\end{figure}
+
+The algorithm used to solve these coupled finite difference equations
+deviated substantially from the method described by Hogan and Shih
+\cite{hogan_modeling_2006} in that the algorithm accounted for a
+convection (Neumann) boundary condition rather than a temperature
+(Dirichlet) boundary condition.  This is important because in most
+practical applications will have temperature-driven heat flux, or
+convection, boundary conditions.  The necessary boundary conditions
+are fluid temperature and heat transfer coefficient on both the hot
+and cold side of the TE device as well as the hot and cold side
+temperature of the TE device.  The hot and cold side TE device
+temperature boundary conditions are satisfied by
+\begin{equation}
+  \label{eq:te-hot-temp-bc}
+  T_{0,\text{n}} = T_{0,\text{p}}
+\end{equation}
+and
+\begin{equation}
+  \label{eq:te-cold-temp-bc}
+  T_{N,\text{n}} = T_{N,\text{p}}
+\end{equation}
+where subscript 0 indicates the node in contact with the hot side
+copper interconnect, subscript $N$ indicates the node in contact with
+the cold side copper interconnect, and the second subscript indicates
+n-type or p-type TE leg. The heat flux boundary conditions are given
+by following conditions:
+\begin{equation}
+  \label{eq:te-hot-side-BC}
+  U_{\text{h}} \left( T_{\text{h,conv}} - T_{\text{h}} \right) =
+  q_{\text{h,comp}} 
+\end{equation}
+and
+\begin{equation}
+  \label{eq:te-cold-side-BC}
+  U_{\text{c}} \left( T_{\text{c,conv}} - T_{\text{c}} \right) =
+  q_{\text{c,comp}} 
+\end{equation}
+
+The algorithm proceeds as follows:
+\begin{enumerate}
+\item Estimate hot side heat flux for the n-type leg, hot side heat
+  flux for the p-type leg, and hot side temperature based on pure
+  conduction and convection.
+\item Solve for the temperature and heat flux profiles in both the
+  n-type and p-type TE legs using Equations \ref{eq:temp-discrete}
+  and \ref{eq:q-discrete}.
+\item Determine the error between the composite TE heat flux and the
+  convection heat flux (Equations \ref{eq:te-hot-side-BC} and
+  \ref{eq:te-cold-side-BC}) \label{item:heat-flux-bc} for both the hot
+  and cold sides.
+\item Determine the error between the cold side p-type and n-type
+  temperatures, as given by Equations \ref{eq:te-hot-temp-bc} and
+  \ref{eq:te-cold-temp-bc}.  \label{item:cold-temperature-bc}
+\item Iterate until the error in steps \ref{item:heat-flux-bc} and
+  \ref{item:cold-temperature-bc} is zero.
+\end{enumerate}
+The iteration was performed by the \emph{fsolve} function of the open
+source Python 2.7 SciPy package.
 
 \subsection{Steady State}
 \label{sec:mod-steady-state}
@@ -195,6 +588,8 @@ thermoelectric \sep model
 
 \subsection{Transient}
 \label{sec:mod-transient}
+
+This may be beyond the scope.  
 
 \section{Results and Discussion}
 \label{sec:RandD}
@@ -211,10 +606,85 @@ thermoelectric \sep model
 
 % Chad
 
+As indicated in Section \ref{sec:te-system-model}, n-/p-type leg area
+ratio, leg length, fill fraction, and current (as a surrogate for load
+resistance) were all used as optimization parameters for maximizing
+net power output.  Optimal n-/p-type leg area ratio remained
+relatively constant with respect to the other parameters.  This is
+because temperature dependency of the thermoelectric properties
+exhibited similar trends for both the n- and p-type materials.  The
+latter three parameters, leg length, fill fraction, and current,
+exhibited some strongly interdependent tendencies in the way they
+affected power output, and to demonstrate this, surface projections of
+the 3-dimensional design space are plotted in Figure
+\ref{fig:te_design_space}. The optimal values for each parameter in
+the design space are shown in Table \ref{tab:te-design-space-opt}.
+For this design space, n-/p-type leg area ratio is held constant at
+0.7 because there is almost no change in optimal leg area as the other
+parameters are varied.  Convection boundary conditions are 300 K and
+680 K with overall heat transfer coefficients of 8
+$\frac{\text{kW}}{\text{m}^2\text{K}}$ and 2
+$\frac{\text{kW}}{\text{m}^2\text{K}}$ for the coolant and exhaust,
+respectively.  These boundary condition are typical values for coolant
+and exhaust averaged in the stream-wise direction in the model heat
+exchangers.
+
+\begin{figure}[H]
+  \centering
+  \subfloat[]{\label{fig:te-power-space2}%
+    \includegraphics[width=0.5\textwidth]{power_I_fill}}
+  \subfloat[]{\label{fig:te-power-space3}%
+    \includegraphics[width=0.5\textwidth]{power_length_I}} \\
+  \subfloat[]{\label{fig:te-power-space1}%
+    \includegraphics[width=0.5\textwidth]{power_fill_length}}
+  \caption{3D Surface plots showing thermoelectric power output v. (a)
+    current and fill fraction, (b) current and length, and (c) fill
+    fraction and length.  n-/p-type leg area ratio is held constant at
+    0.7.  Convection boundary conditions are 300 K and 680 K with
+    overall heat transfer coefficients of 8
+    $\frac{\text{kW}}{\text{m}^2\text{K}}$ and 2
+    $\frac{\text{kW}}{\text{m}^2\text{K}}$ for the coolant and
+    exhaust, respectively.}  % give these conditions in the text
+  \label{fig:te_design_space}
+\end{figure}
+\begin{table}[H]
+  \centering
+  \caption{Optimal parameters for design space of standalone TE
+    device, as determined by model. Convection boundary conditions are
+    300 K and 680 K with overall heat transfer coefficients of 8
+    $\frac{\text{kW}}{\text{m}^2\text{K}}$ and 2
+    $\frac{\text{kW}}{\text{m}^2\text{K}}$ for the coolant and
+    exhaust, respectively.}
+  \begin{tabular}[H]{cc}
+    Parameter & Value \\
+    \hline
+    fill fraction & 17.9 \% \\
+    leg length & 0.330 mm\\
+    current & 23.3 A \\
+    n-/p-type leg area ratio & 0.700 \\
+  \end{tabular}
+  \label{tab:te-design-space-opt}
+\end{table}
+These results indicate that changing any of the three variables (fill
+fraction, leg length, or current) can greatly impact the effect the
+other two have on performance.  This also shows that there is a
+clearly defined optimal location within the design space.  Leg area
+ratio is included because it does require optimization, but the
+optimal n-/p-type leg area ratio is insensitive to the other three
+parameters as well as boundary conditions.
+
+Note that the results presented in Figure \ref{fig:te_design_space}
+vary with convection boundary conditions, and as such, the HX system
+model would produce results that are somewhat shifted in the design
+space due to a range of convection boundary conditions throughout the
+stream-wise direction of the heat exchanger.  Exploring this
+relationship is beyond the scope of the present work.  
+
 \subsection{Transient}
 \label{sec:r-d-transient}
 
 % Haiyan 
+This may be beyond the scope.  
 
 \section{Conclusions}
 \label{sec:conclusions}
@@ -279,7 +749,7 @@ thermoelectric \sep model
 
 \newpage
 \bibliographystyle{model2-names}
-\bibliography{Library}
+\bibliography{Dissertation}
 
 %% Authors are advised to submit their bibtex database files. They are
 %% requested to list a bibtex style file in the manuscript if they do
